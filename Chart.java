@@ -19,7 +19,11 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import java.io.File;
 import java.io.IOException;
 import org.jfree.chart.ChartUtilities;
-
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.DateTickUnit;
+import java.text.DateFormat;
+import java.text.*;
 
 public class Chart extends ApplicationFrame {
 
@@ -63,7 +67,7 @@ public class Chart extends ApplicationFrame {
         
         final XYSeries series1 = new XYSeries("First");
 
-        System.out.println(array.length);
+        System.out.println("This is the size of the array passed to chart " + array.length);
 
         for(int i = 0; i < array.length; i++)
         {
@@ -86,8 +90,8 @@ public class Chart extends ApplicationFrame {
         // create the chart...
         final JFreeChart chart = ChartFactory.createXYLineChart(
             "Scripps Pier pH Over Time",      // chart title
-            "X",                      // x axis label
-            "Y",                      // y axis label
+            "time",                      // x axis label
+            "pH",                      // y axis label
             dataset,                  // data
             PlotOrientation.VERTICAL,
             true,                     // include legend
@@ -98,13 +102,13 @@ public class Chart extends ApplicationFrame {
         // NOW DO SOME OPTIONAL CUSTOMISATION OF THE CHART...
         chart.setBackgroundPaint(Color.white);
 
-//        final StandardLegend legend = (StandardLegend) chart.getLegend();
-  //      legend.setDisplaySeriesShapes(true);
+        //        final StandardLegend legend = (StandardLegend) chart.getLegend();
+        //      legend.setDisplaySeriesShapes(true);
         
         // get a reference to the plot for further customisation...
         final XYPlot plot = chart.getXYPlot();
         plot.setBackgroundPaint(Color.lightGray);
-    //    plot.setAxisOffset(new Spacer(Spacer.ABSOLUTE, 5.0, 5.0, 5.0, 5.0));
+        //    plot.setAxisOffset(new Spacer(Spacer.ABSOLUTE, 5.0, 5.0, 5.0, 5.0));
         plot.setDomainGridlinePaint(Color.white);
         plot.setRangeGridlinePaint(Color.white);
         
@@ -116,6 +120,19 @@ public class Chart extends ApplicationFrame {
         // change the auto tick unit selection to integer units only...
         final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+
+
+        DateAxis dateDomainAxis = new DateAxis();
+        plot.setDomainAxis(dateDomainAxis);
+
+        final DateAxis domainAxis = (DateAxis) plot.getDomainAxis();
+        //domainAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
+        DateFormat formatter = new SimpleDateFormat("yyyyMMddd");
+        //DateTickUnit unit = new DateTickUnit(DateTickUnit.YEAR, 1, formatter);
+        domainAxis.setDateFormatOverride(formatter);
+        //domainAxis.setRange(0.0,100);
+        //domainAxis.setTickUnit(new NumberTickUnit(20));
+        //domainAxis.setVerticalTickLabels(true);
         // OPTIONAL CUSTOMISATION COMPLETED.
                 
         return chart;

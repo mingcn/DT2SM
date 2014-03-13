@@ -18,29 +18,52 @@ public class DTManager {
 	private String[] units;
 	private String[] MIMEs;
 
-	// ----- DT Client & Source related operation
-	public DTManager() 
+	private int requestStartTime = 0;
+	private int requestDuration = 0;
+	private String connectionAddress = "localhost:3333";
+	private String clientName = "SinkClient";
+	private String channelName = "HelloWorld/IMM/pHEST";
+
+	public void execute()
 	{
 		connectToDT();
 
 		createChMap();
 
-		addToChMap("HelloWorld/IMM/pHEST");
+		addToChMap(channelName);
 
 		requestAndFetch();
 	}
 
+	// ----- DT Client & Source related operation
+	public DTManager() 
+	{
+		this.requestStartTime = 0; //System.getCurrentMilli();
+		this.requestDuration = 1000;
+		this.connectionAddress = "localhost:3333";
+		this.clientName = "DTManager";
+		this.channelName = "something";
+	}
+
+	public DTManager(String requestStartTime, String requestDuration,
+		String connectionAddress, String clientName, String channelName)
+	{
+		this.requestStartTime = Integer.parseInt(requestStartTime);
+		this.requestDuration = Integer.parseInt(requestDuration);
+		this.connectionAddress = connectionAddress;
+		this.clientName = clientName;
+		this.channelName = channelName;
+	}
+
 	public void connectToDT() {
-		String address = "localhost:3333";
-		String clientName = "SinkClient";
-		this.connectToDT(address, clientName);
+		this.connectToDT(connectionAddress, clientName);
 	}
 
 	public void connectToDT(String address, String name) {
 		sink=new Sink();
       	try
       	{
-      		sink.OpenRBNBConnection("localhost:3333", "SinkClient");
+      		sink.OpenRBNBConnection(address, name);
       	}
       	catch(SAPIException se)
       	{ 
@@ -106,23 +129,32 @@ public class DTManager {
 
 	public void requestAndFetch()
 	{
+		try {
+			this.sink.RequestRegistration(this.chMap);
+			this.sink.Fetch(-1,this.chMap);
+			System.out.println(this.chMap.GetTimeStart(0));
+			System.out.println(this.chMap.GetTimeDuration(0));
+
+		}
+		catch(SAPIException se)
+		{
+			se.printStackTrace();
+			this.sink.CloseRBNBConnection();
+			System.exit(1);
+		}
+
+
 		try
 		{
-			this.sink.Request(this.chMap, 200, 0, "newest");
-			chMap = sink.Fetch(-1,chMap); 
+			this.sink.Request(this.chMap, requestStartTime, requestDuration, "newest");
 
-			System.out.println(chMap.GetDataAsInt32(0).length);
+			chMap = sink.Fetch(-1,chMap); 
 
 	    	requestedData = chMap.GetDataAsInt32(0);
 
 			double[] times = chMap.GetTimes(0);
 
-			/*for(int i = 0; i < chMap.GetDataAsInt32(0).length; i++)
-	        {
-	        	System.out.println("Retrieved \""
-	                   +chMap.GetDataAsInt32(0)[i]
-	                   +"\" from server." + times[i]);
-	    	}*/
+	    	System.out.println(chMap.GetDataAsInt32(0).length);
 
 	    }
 	    catch(SAPIException se)
@@ -131,6 +163,7 @@ public class DTManager {
       		this.sink.CloseRBNBConnection();
       		System.exit(1);	
 	    }
+
 	}
 
 	public int[] getDataArray()
@@ -138,42 +171,20 @@ public class DTManager {
 		return requestedData;
 	}
 
-	public void findpHValues()
-  	{
-    	try 
-    	{
-      	Sink sink=new Sink();
-      	sink.OpenRBNBConnection("localhost:3333", "SinkClient");
- 
-       // Pull data from the server:
-      	ChannelMap rMap = new ChannelMap();
+	public static void main(String[] args)
+	{
+		//DTManager dm = new DTManager(0, 300, "localhost:3333", "SinkClient", "HelloWorld/IMM/pHEST");
+		if(args.length == 5)
+		{
+			DTManager dm = new DTManager(args[0], args[1], args[2], args[3], args[4]);
+			dm.execute();
+		}
+		else
+		{
+			System.err.println("There are not enough command line arguments");
+			System.exit(1);
+		}
 
-      	rMap.Add("HelloWorld/IMM/pHEST");
-      	sink.Request(rMap, 0, 900, "newest");
-
-        rMap = sink.Fetch(-1,rMap); 
-
-        System.out.println(rMap.GetChannelList());
-        System.out.println(rMap.GetChannelList().length);
-
-        System.out.println(rMap.GetDataAsInt32(0));
-        
-        for(int i = 0; i < 10; i++)
-        {
-        	System.out.println("Retrieved \""
-                   +rMap.GetDataAsInt32(0)[i]
-                   +"\" from server.");
-    	}
-
-    	System.out.println(rMap.GetDataAsInt32(0).length);
-
-
-        
-       } 
-     catch(SAPIException se) 
-     { 
-      se.printStackTrace(); 
-     }
-  }
+	}
 
 }
