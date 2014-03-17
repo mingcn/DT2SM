@@ -5,7 +5,8 @@ import com.rbnb.sapi.SAPIException;
 import com.rbnb.sapi.*;
 import java.util.*;
 
-public class DTManager {
+public class DTManager 
+{
 
 	Sink sink;
 	ChannelMap chMap;
@@ -13,25 +14,23 @@ public class DTManager {
 	String[] dataType;
 
 	private int[] requestedData;
+	private double[] times;
 
 	private String[] chNames;
 	private String[] units;
 	private String[] MIMEs;
 
-	private int requestStartTime = 0;
-	private int requestDuration = 0;
-	private String connectionAddress = "localhost:3333";
-	private String clientName = "SinkClient";
-	private String channelName = "HelloWorld/IMM/pHEST";
+	private int requestStartTime;
+	private int requestDuration;
+	private String connectionAddress;
+	private String clientName;
+	private String channelName;
 
 	public void execute()
 	{
 		connectToDT();
-
 		createChMap();
-
 		addToChMap(channelName);
-
 		requestAndFetch();
 	}
 
@@ -41,8 +40,8 @@ public class DTManager {
 		this.requestStartTime = 0; //System.getCurrentMilli();
 		this.requestDuration = 1000;
 		this.connectionAddress = "localhost:3333";
-		this.clientName = "DTManager";
-		this.channelName = "something";
+		this.clientName = "SinkClient";
+		this.channelName = "HellowWorld/IMM/pHEST";
 	}
 
 	public DTManager(String requestStartTime, String requestDuration,
@@ -55,11 +54,13 @@ public class DTManager {
 		this.channelName = channelName;
 	}
 
-	public void connectToDT() {
+	public void connectToDT() 
+	{
 		this.connectToDT(connectionAddress, clientName);
 	}
 
-	public void connectToDT(String address, String name) {
+	public void connectToDT(String address, String name) 
+	{
 		sink=new Sink();
       	try
       	{
@@ -73,22 +74,26 @@ public class DTManager {
       	}
 	}
 
-	public void detachSink() {
+	public void detachSink() 
+	{
 		if (this.sink != null)
 			//this.sink.Detach();
 		this.sink = null;
 	}
 
-	public void closeRBNBConnection() {
+	public void closeRBNBConnection() 
+	{
 		if (this.sink != null)
 			this.sink.CloseRBNBConnection();
 	}
 
-	public void clear() {
+	public void clear() 
+	{
 		this.sink = null;
 	}
 
-	public boolean isDTConnectionAlive() {
+	public boolean isDTConnectionAlive() 
+	{
 		return this.sink.VerifyConnection();
 	}
 
@@ -129,7 +134,8 @@ public class DTManager {
 
 	public void requestAndFetch()
 	{
-		try {
+		try 
+		{
 			this.sink.RequestRegistration(this.chMap);
 			this.sink.Fetch(-1,this.chMap);
 			System.out.println(this.chMap.GetTimeStart(0));
@@ -147,15 +153,9 @@ public class DTManager {
 		try
 		{
 			this.sink.Request(this.chMap, requestStartTime, requestDuration, "newest");
-
 			chMap = sink.Fetch(-1,chMap); 
-
 	    	requestedData = chMap.GetDataAsInt32(0);
-
-			double[] times = chMap.GetTimes(0);
-
-	    	System.out.println(chMap.GetDataAsInt32(0).length);
-
+			times = chMap.GetTimes(0);
 	    }
 	    catch(SAPIException se)
 	    {
@@ -171,9 +171,13 @@ public class DTManager {
 		return requestedData;
 	}
 
+	public double[] getTimes()
+	{
+		return times;
+	}
+
 	public static void main(String[] args)
 	{
-		//DTManager dm = new DTManager(0, 300, "localhost:3333", "SinkClient", "HelloWorld/IMM/pHEST");
 		if(args.length == 5)
 		{
 			DTManager dm = new DTManager(args[0], args[1], args[2], args[3], args[4]);
