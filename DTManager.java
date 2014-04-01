@@ -140,6 +140,7 @@ public class DTManager
 			this.sink.Fetch(-1,this.chMap);
 			System.out.println(this.chMap.GetTimeStart(0));
 			System.out.println(this.chMap.GetTimeDuration(0));
+			System.out.println(this.chMap.GetType(0));
 
 		}
 		catch(SAPIException se)
@@ -154,7 +155,11 @@ public class DTManager
 		{
 			this.sink.Request(this.chMap, requestStartTime, requestDuration, "newest");
 			chMap = sink.Fetch(-1,chMap); 
-	    	requestedData = chMap.GetDataAsInt32(0);
+	    	//requestedData = chMap.GetDataAsString(0);
+	    	for(int i = 0; i < chMap.GetDataAsFloat64(0).length; i++)
+	    	{
+	    		System.out.println(chMap.GetDataAsFloat64(0)[i]);
+	    	}
 			times = chMap.GetTimes(0);
 	    }
 	    catch(SAPIException se)

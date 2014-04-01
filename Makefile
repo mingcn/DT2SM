@@ -6,4 +6,4 @@ dt:
 	javac -cp .:rbnb.jar DTManager.java
 
 run:
-	java -cp .:jcommon-1.0.22.jar:jfreechart-1.0.17.jar:rbnb.jar ChartMaker
+	java -cp .:jcommon-1.0.22.jar:jfreechart-1.0.17.jar:rbnb.jar ChartMaker 900 50.18.112.125:4444 SinkClient IMM/Est_pH_int w
