@@ -34,9 +34,9 @@ public class ChartMaker extends ApplicationFrame {
     private String channelName;
     private String duration;
     private String chartName;
-    private String chartType;
     private String requestType;
     private String requestStartTime;
+    private String saveDirectory;
     private double[] data;
     private double[] times;
 
@@ -48,22 +48,22 @@ public class ChartMaker extends ApplicationFrame {
         channelName = "HelloWorld/IMM/pHEST";
         duration = "900";
         chartName = "Scripps Pier 15 Minutes Chart";
-        chartType = "l";
         requestType = "newest";
         requestStartTime = "0";
+        saveDirectory = "/Users/mingcn/Dropbox/Public/SIOCharts/TestChart";
     }
 
     public ChartMaker(String chartName, String requestStartTime, String duration, String requestType, 
-        String url, String clientName, String channelName, String chartType) {
+        String url, String clientName, String channelName, String saveDirectory) {
         super("Scripps Pier pH Chart");
         this.url = url;
         this.clientName = clientName;
         this.channelName = channelName;
         this.duration = duration;
         this.chartName = chartName;
-        this.chartType = chartType;
         this.requestType = requestType;
         this.requestStartTime = requestStartTime;
+        this.saveDirectory = saveDirectory;
 
     }
 
@@ -95,7 +95,7 @@ public class ChartMaker extends ApplicationFrame {
 
         try 
         {
-            ChartUtilities.saveChartAsJPEG(new File("/Users/mingcn/Dropbox/Public/SIOCharts/TestChart" + date + ".jpg"), chart, 1000, 540);
+            ChartUtilities.saveChartAsJPEG(new File(saveDirectory + date + ".jpg"), chart, 1000, 540);
         }
         catch (IOException e) 
         {
@@ -215,27 +215,10 @@ public class ChartMaker extends ApplicationFrame {
 
         if(args.length == 7)
         {
-            if(args[6].equals("l"))
-            {
-                demo = new ChartMaker("Scripps Pier pH", args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
-                demo.execute();
-                demo.pack();
-                RefineryUtilities.centerFrameOnScreen(demo);
-                demo.setVisible(true);
-            }
-            else if(args[6].equals("w"))
-            {
-                demo = new ChartMaker("Scripps Pier pH", args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
-                demo.execute();
-                demo.pack();
-                RefineryUtilities.centerFrameOnScreen(demo);
-                demo.setVisible(true);
-            }
-            else
-            {
-                System.err.println("Place a w or l at the end of command line to specify weekly or live");
-                System.exit(1);
-            }
+
+            demo = new ChartMaker("Scripps Pier pH", args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
+            demo.execute();
+
         }
         else
         {
