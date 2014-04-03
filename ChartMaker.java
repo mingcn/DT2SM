@@ -80,9 +80,6 @@ public class ChartMaker extends ApplicationFrame {
 
         final XYDataset dataset = createDataset(data, times);
         final JFreeChart chart = createChartObj(dataset);
-        final ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setPreferredSize(new java.awt.Dimension(1000, 540));
-        setContentPane(chartPanel);
 
         saveChart(chart);
 
