@@ -13,7 +13,7 @@ public class DTManager
 	int[] intDataType;
 	String[] dataType;
 
-	private int[] requestedData;
+	private double[] requestedData;
 	private double[] times;
 
 	private String[] chNames;
@@ -22,6 +22,7 @@ public class DTManager
 
 	private int requestStartTime;
 	private int requestDuration;
+	private String requestType;
 	private String connectionAddress;
 	private String clientName;
 	private String channelName;
@@ -42,16 +43,18 @@ public class DTManager
 		this.connectionAddress = "localhost:3333";
 		this.clientName = "SinkClient";
 		this.channelName = "HellowWorld/IMM/pHEST";
+		this.requestType = "newest";
 	}
 
 	public DTManager(String requestStartTime, String requestDuration,
-		String connectionAddress, String clientName, String channelName)
+		String connectionAddress, String clientName, String channelName, String requestType)
 	{
 		this.requestStartTime = Integer.parseInt(requestStartTime);
 		this.requestDuration = Integer.parseInt(requestDuration);
 		this.connectionAddress = connectionAddress;
 		this.clientName = clientName;
 		this.channelName = channelName;
+		this.requestType = requestType;
 	}
 
 	public void connectToDT() 
@@ -134,32 +137,11 @@ public class DTManager
 
 	public void requestAndFetch()
 	{
-		try 
-		{
-			this.sink.RequestRegistration(this.chMap);
-			this.sink.Fetch(-1,this.chMap);
-			System.out.println(this.chMap.GetTimeStart(0));
-			System.out.println(this.chMap.GetTimeDuration(0));
-			System.out.println(this.chMap.GetType(0));
-
-		}
-		catch(SAPIException se)
-		{
-			se.printStackTrace();
-			this.sink.CloseRBNBConnection();
-			System.exit(1);
-		}
-
-
 		try
 		{
-			this.sink.Request(this.chMap, requestStartTime, requestDuration, "newest");
+			this.sink.Request(this.chMap, requestStartTime, requestDuration, requestType);
 			chMap = sink.Fetch(-1,chMap); 
-	    	//requestedData = chMap.GetDataAsString(0);
-	    	for(int i = 0; i < chMap.GetDataAsFloat64(0).length; i++)
-	    	{
-	    		System.out.println(chMap.GetDataAsFloat64(0)[i]);
-	    	}
+	    	requestedData = (chMap.GetDataAsFloat64(0));
 			times = chMap.GetTimes(0);
 	    }
 	    catch(SAPIException se)
@@ -171,7 +153,7 @@ public class DTManager
 
 	}
 
-	public int[] getDataArray()
+	public double[] getDataArray()
 	{
 		return requestedData;
 	}
@@ -179,21 +161,6 @@ public class DTManager
 	public double[] getTimes()
 	{
 		return times;
-	}
-
-	public static void main(String[] args)
-	{
-		if(args.length == 5)
-		{
-			DTManager dm = new DTManager(args[0], args[1], args[2], args[3], args[4]);
-			dm.execute();
-		}
-		else
-		{
-			System.err.println("There are not enough command line arguments");
-			System.exit(1);
-		}
-
 	}
 
 }

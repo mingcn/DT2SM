@@ -35,6 +35,10 @@ public class ChartMaker extends ApplicationFrame {
     private String duration;
     private String chartName;
     private String chartType;
+    private String requestType;
+    private String requestStartTime;
+    private double[] data;
+    private double[] times;
 
     public ChartMaker()
     {
@@ -45,52 +49,53 @@ public class ChartMaker extends ApplicationFrame {
         duration = "900";
         chartName = "Scripps Pier 15 Minutes Chart";
         chartType = "l";
-
+        requestType = "newest";
+        requestStartTime = "0";
     }
 
-    public ChartMaker(String chartName, String duration, String url, String clientName, String channelName, String chartType) {
+    public ChartMaker(String chartName, String requestStartTime, String duration, String requestType, 
+        String url, String clientName, String channelName, String chartType) {
         super("Scripps Pier pH Chart");
         this.url = url;
         this.clientName = clientName;
         this.channelName = channelName;
         this.duration = duration;
         this.chartName = chartName;
-        this.chartName = this.chartName + " " + getLastWeek() + " - " + getCurrentDateAs("MM/dd/yy"); 
         this.chartType = chartType;
+        this.requestType = requestType;
+        this.requestStartTime = requestStartTime;
 
     }
 
     public void execute()
     {
-        DTManager dt = new DTManager("0", duration, url, clientName, channelName);
+        DTManager dt = new DTManager(requestStartTime, duration, url, clientName, channelName, requestType);
 
         dt.execute();
 
-        int[] data = dt.getDataArray();
-        double[] times = dt.getTimes();
+        data = dt.getDataArray();
+        times = dt.getTimes();
+
+        setChartName();
 
         final XYDataset dataset = createDataset(data, times);
         final JFreeChart chart = createChartObj(dataset);
         final ChartPanel chartPanel = new ChartPanel(chart);
-        chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
+        chartPanel.setPreferredSize(new java.awt.Dimension(1000, 540));
         setContentPane(chartPanel);
 
-        DateFormat dateFormat = new SimpleDateFormat("EEE dd HH:mm");
-        Calendar cal = Calendar.getInstance();
-        System.out.println(dateFormat.format(cal.getTime()));
-
-        //saveChart(chart);
+        saveChart(chart);
 
     }
     
     private void saveChart(JFreeChart chart)
     {
 
-        String date = getCurrentDateAs("yyyyMMddHHmm");
+        String date = getDateFromDouble("yyyyMMddHHmm", times[times.length - 1]);
 
         try 
         {
-            ChartUtilities.saveChartAsJPEG(new File("/Users/mingcn/Dropbox/Public/SIOCharts/TestChart" + date + ".jpg"), chart, 500, 270);
+            ChartUtilities.saveChartAsJPEG(new File("/Users/mingcn/Dropbox/Public/SIOCharts/TestChart" + date + ".jpg"), chart, 1000, 540);
         }
         catch (IOException e) 
         {
@@ -99,57 +104,39 @@ public class ChartMaker extends ApplicationFrame {
         }
     }
 
-    public String getCurrentDateAs(String format)
+    public String getDateFromDouble(String format, double time)
     {
         DateFormat dateFormat = new SimpleDateFormat(format);
-        Calendar cal = Calendar.getInstance();
-        return dateFormat.format(cal.getTime());
+        long temp = (long)time*(long)1000;
+        Date date = new Date(temp);
+        return dateFormat.format(date);
     }
 
-    public String getLastWeek()
+    public void setChartName()
     {
-        Date date = new Date();
-        Calendar c = Calendar.getInstance();
-        c.setTime(date);
-        c.add(Calendar.DATE, -7);
-        DateFormat dateFormat = new SimpleDateFormat("MM/dd/yy");
-        return dateFormat.format(c.getTime());
+        this.chartName = this.chartName + " " + getDateFromDouble("MM/dd/yy", times[0]) + " - " + getDateFromDouble("MM/dd/yy", times[times.length - 1]); 
     }
     
-/**
+    /**
      * Creates a sample dataset 
      */
 
-    private XYDataset createDataset(int[] array, double[] times) {
+    private XYDataset createDataset(double[] array, double[] times) {
 
         TimeSeries series1 = new TimeSeries("pH");
         TimeSeries series2 = new TimeSeries("Historical pH");
-        TimeSeries series3 = new TimeSeries("Predicted pH");
-        TimeSeries series4 = new TimeSeries("Predicted pH two");
  
         for(int i = 0; i < array.length; i++)
         {
-            series1.add(new Millisecond(new Time( (long)times[i]*(long)1000 )), 8);
+            series1.addOrUpdate(new Millisecond(new Time( (long)times[i]*(long)1000 )), array[i]);
         }
 
         for(int i = 0; i < array.length; i++)
         {
-            series2.add(new Millisecond(new Time( (long)times[i]*(long)1000 )), 8.16);
-        }
-
-        for(int i = 0; i < array.length; i++)
-        {
-            series3.add(new Millisecond(new Time( (long)times[i]*(long)1000 )), 7.6);
-        }
-
-        for(int i = 0; i < array.length; i++)
-        {
-            series4.add(new Millisecond(new Time( (long)times[i]*(long)1000 )), 7.8);
+            series2.addOrUpdate(new Millisecond(new Time( (long)times[i]*(long)1000 )), 8.16);
         }
 
         TimeSeriesCollection dataset = new TimeSeriesCollection();
-         dataset.addSeries(series3);
-        dataset.addSeries(series4);
         dataset.addSeries(series1);
         dataset.addSeries(series2);
        
@@ -158,7 +145,7 @@ public class ChartMaker extends ApplicationFrame {
         
     }
     
-/**
+    /**
      * Creates a chart
      */
 
@@ -184,22 +171,21 @@ public class ChartMaker extends ApplicationFrame {
         // get a reference to the plot for further customisation...
         final XYPlot plot = chart.getXYPlot();
         plot.setBackgroundPaint(Color.lightGray);
-        //    plot.setAxisOffset(new Spacer(Spacer.ABSOLUTE, 5.0, 5.0, 5.0, 5.0));
         plot.setDomainGridlinePaint(Color.white);
         plot.setRangeGridlinePaint(Color.white);
         
-       /* final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+        final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         renderer.setSeriesLinesVisible(0, true);
-        renderer.setSeriesShapesVisible(0, true);
-        renderer.setSeriesShapesVisible(1, true);
-        renderer.setSeriesShapesVisible(2, true);
-        renderer.setSeriesShape( 0, new Rectangle2D.Double( -1.0, -1.0, 2.0, 2.0 ) );
-        renderer.setSeriesShape( 1, new Rectangle2D.Double( -1.0, -1.0, 2.0, 2.0 ) );
-        renderer.setSeriesShape( 2, new Rectangle2D.Double( -1.0, -1.0, 2.0, 2.0 ) );
-        renderer.setSeriesPaint(2, Color.BLUE);
-        plot.setRenderer(renderer);*/
+        renderer.setSeriesShapesVisible(0, false);
+        renderer.setSeriesShapesVisible(1, false);
+        //renderer.setSeriesShapesVisible(2, true);
+        //renderer.setSeriesShape( 0, new Rectangle2D.Double( -1.0, -1.0, 2.0, 2.0 ) );
+        //renderer.setSeriesShape( 1, new Rectangle2D.Double( -1.0, -1.0, 2.0, 2.0 ) );
+        //renderer.setSeriesShape( 2, new Rectangle2D.Double( -1.0, -1.0, 2.0, 2.0 ) );
+        //renderer.setSeriesPaint(2, Color.BLUE);
+        plot.setRenderer(renderer);
 
-        float alpha = (float)0.4;
+      /*  float alpha = (float)0.4;
 
         final XYDifferenceRenderer renderer = new XYDifferenceRenderer(
             Color.blue, new Color((float)0.0,(float)0.0,(float)0.0, alpha), false
@@ -213,16 +199,9 @@ public class ChartMaker extends ApplicationFrame {
         renderer.setSeriesPaint(2, Color.BLUE);
         //final XYPlot plot = chart.getXYPlot();
         plot.setRenderer(renderer);
-
+        */
         DateAxis axis = (DateAxis) plot.getDomainAxis();
-        axis.setDateFormatOverride(new SimpleDateFormat("EEE dd HH:mm"));
-
-       /* final Color c = new Color(255, 60, 24, 63);
-        final Marker bst = new IntervalMarker(
-            new Day(28, 3, 2004).getFirstMillisecond(), new Day(30, 10, 2004).getFirstMillisecond(),
-            c, new BasicStroke(2.0f), null, null, 1.0f
-        );*/
-
+        axis.setDateFormatOverride(new SimpleDateFormat("MMM dd EEE HH:mm"));
                 
         return chart;
         
@@ -234,19 +213,19 @@ public class ChartMaker extends ApplicationFrame {
 
         final ChartMaker demo;
 
-        if(args.length == 5)
+        if(args.length == 7)
         {
-            if(args[4].equals("l"))
+            if(args[6].equals("l"))
             {
-                demo = new ChartMaker("Scripps Pier pH", args[0], args[1], args[2], args[3], args[4]);
+                demo = new ChartMaker("Scripps Pier pH", args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
                 demo.execute();
                 demo.pack();
                 RefineryUtilities.centerFrameOnScreen(demo);
                 demo.setVisible(true);
             }
-            else if(args[4].equals("w"))
+            else if(args[6].equals("w"))
             {
-                demo = new ChartMaker("Scripps Pier pH", args[0], args[1], args[2], args[3], args[4]);
+                demo = new ChartMaker("Scripps Pier pH", args[0], args[1], args[2], args[3], args[4], args[5], args[6]);
                 demo.execute();
                 demo.pack();
                 RefineryUtilities.centerFrameOnScreen(demo);
