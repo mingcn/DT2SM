@@ -25,7 +25,7 @@ import org.jfree.chart.renderer.xy.XYDifferenceRenderer;
 import org.jfree.data.time.Day;
 
 
-public class ChartMaker extends ApplicationFrame {
+public class ChartMaker{
 
   private static final long serialVersionUID = 1L;
 
@@ -42,7 +42,6 @@ public class ChartMaker extends ApplicationFrame {
 
     public ChartMaker()
     {
-        super("Scripps Pier pH Chart");
         url = "localhost:3333";
         clientName = "SinkClient";
         channelName = "HelloWorld/IMM/pHEST";
@@ -55,7 +54,6 @@ public class ChartMaker extends ApplicationFrame {
 
     public ChartMaker(String chartName, String requestStartTime, String duration, String requestType, 
         String url, String clientName, String channelName, String saveDirectory) {
-        super("Scripps Pier pH Chart");
         this.url = url;
         this.clientName = clientName;
         this.channelName = channelName;
@@ -103,7 +101,9 @@ public class ChartMaker extends ApplicationFrame {
 
     public String getDateFromDouble(String format, double time)
     {
+        
         DateFormat dateFormat = new SimpleDateFormat(format);
+        dateFormat.setTimeZone(TimeZone.getTimeZone("PST"));
         long temp = (long)time*(long)1000;
         Date date = new Date(temp);
         return dateFormat.format(date);
@@ -198,7 +198,9 @@ public class ChartMaker extends ApplicationFrame {
         plot.setRenderer(renderer);
         */
         DateAxis axis = (DateAxis) plot.getDomainAxis();
-        axis.setDateFormatOverride(new SimpleDateFormat("MMM dd EEE HH:mm"));
+        DateFormat dateFormat = new SimpleDateFormat("MMM dd EEE HH:mm");
+        dateFormat.setTimeZone(TimeZone.getTimeZone("PST"));
+        axis.setDateFormatOverride(dateFormat);
                 
         return chart;
         
