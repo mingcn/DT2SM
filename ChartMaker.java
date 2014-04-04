@@ -210,6 +210,8 @@ public class ChartMaker{
        public static void main(String[] args) 
        {
 
+        System.setProperty("java.awt.headless","true");
+
         final ChartMaker demo;
 
         if(args.length == 7)
